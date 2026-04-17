@@ -3,6 +3,11 @@ from discord import app_commands
 from discord.ext import commands
 import config 
 from db import init_db
+import os
+from dotenv import load_dotenv
+
+
+DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 
 intents = discord.Intents.default()
 intents.message_content = True 
@@ -26,4 +31,5 @@ async def on_ready():
 async def ping(interaction: discord.Interaction):
     await interaction.response.send_message("Понг!")
 
-bot.run(TOKEN)
+if __name__ == "__main__":
+    bot.run(DISCORD_TOKEN)
