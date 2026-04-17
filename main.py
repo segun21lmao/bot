@@ -1,0 +1,29 @@
+import discord
+from discord import app_commands
+from discord.ext import commands
+import config 
+from db import init_db
+
+intents = discord.Intents.default()
+intents.message_content = True 
+bot = commands.Bot(command_prefix='!', intents=intents)
+
+async def load_cogs():
+    await bot.load_extension("cogs.taskmanager")
+
+
+@bot.event
+async def on_ready():
+    print(f"Бот {bot.user} запущен")
+    await init_db()          # 1. Создаём таблицы
+    await load_cogs()        # 2. Загружаем коги (теперь БД готова)
+    try:
+        synced = await bot.tree.sync()
+        print(f"Синхронизировано {len(synced)} слеш-команд")
+    except Exception as e:
+        print(e)
+@bot.tree.command(name="ping", description="Проверка пинга")
+async def ping(interaction: discord.Interaction):
+    await interaction.response.send_message("Понг!")
+
+bot.run(TOKEN)
