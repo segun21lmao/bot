@@ -35,7 +35,7 @@ async def on_message(message:discord.Message):
     
     for ch_id in config.THREAD_CHANNELS:
         if ch_id==message.channel.id:
-            message.create_thread(name="Комментарии", auto_archive_duration=1440)
+            await message.create_thread(name="Комментарии", auto_archive_duration=1440)
 
 
 @bot.tree.command(name="ping", description="Проверка пинга")
