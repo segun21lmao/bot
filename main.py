@@ -27,6 +27,17 @@ async def on_ready():
         print(f"Синхронизировано {len(synced)} слеш-команд")
     except Exception as e:
         print(e)
+
+@bot.event
+async def on_message(message:discord.Message):
+    if message.author == bot.user:  # Ignore self
+        return
+    
+    for ch_id in config.THREAD_CHANNELS:
+        if ch_id==message.channel.id:
+            message.create_thread(name="Комментарии", auto_archive_duration=1440)
+
+
 @bot.tree.command(name="ping", description="Проверка пинга")
 async def ping(interaction: discord.Interaction):
     await interaction.response.send_message("Понг!")
