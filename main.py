@@ -29,13 +29,15 @@ async def on_ready():
         print(e)
 
 @bot.event
-async def on_message(message:discord.Message):
+async def on_message(message):
     if message.author == bot.user:  # Ignore self
         return
     
     for ch_id in config.THREAD_CHANNELS:
         if ch_id==message.channel.id:
             await message.create_thread(name="Комментарии", auto_archive_duration=1440)
+    
+    await bot.process_commands(message)
 
 
 @bot.tree.command(name="ping", description="Проверка пинга")
