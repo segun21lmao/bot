@@ -201,8 +201,7 @@ class Form(Modal):
         await interaction.response.defer()
         channel=interaction.channel
         user = await interaction.guild.fetch_member(interaction.user.id)
-        mention=user.mention
-        thread=await channel.create_thread(name=f"Заявка-{mention}",type=discord.ChannelType.private_thread, auto_archive_duration=1440)
+        thread=await channel.create_thread(name=f"Заявка-{user.name}",type=discord.ChannelType.private_thread, auto_archive_duration=1440)
         #thread=await interaction.message.create_thread(name=f"Заявка-{self.children[0].value}", auto_archive_duration=1440)
         await thread.add_user(interaction.user)
         
