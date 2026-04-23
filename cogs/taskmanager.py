@@ -45,16 +45,9 @@ class TaskManager(commands.Cog):
         await interaction.response.defer(ephemeral=True)
         for i in range(count):
             msg = await channel.send("Загрузка...")
-            task_type=""
-            role=""
-            match channel.id:
-                case config.RES_CHANNEL_ID:
-                    task_type="res"
-                    role=interaction.guild.get_role(config.RES_ROLE)
-                case config.BUILD_CHANNEL_ID:
-                    task_type="build"
-                    role=interaction.guild.get_role(config.BUILD_ROLE)
-            task_id = await create_task(msg.id, title, description,task_type)
+            
+            role=interaction.guild.get_role(config.RES_ROLE)
+            task_id = await create_task(msg.id, title, description)
             view = AcceptTaskView(task_id, msg.id)
             content = f"{role.mention}\n**Задача:** {title}\n**Описание:** {description}\n\n**Принявшие:** пока никто"
             await msg.edit(content=content, view=view)
