@@ -199,7 +199,7 @@ class Form(Modal):
     async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.defer()
         channel=interaction.channel
-        thread=await interaction.message.create_thread(name=f"Заявка-{self.children[0].value}",type=discord.ChannelType.private_thread, auto_archive_duration=1440)
+        thread=await channel.create_thread(name=f"Заявка-{self.children[0].value}",type=discord.ChannelType.private_thread, auto_archive_duration=1440)
         #thread=await interaction.message.create_thread(name=f"Заявка-{self.children[0].value}", auto_archive_duration=1440)
         await thread.add_user(interaction.user)
         mention=interaction.user.mention
