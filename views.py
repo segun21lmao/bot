@@ -146,6 +146,7 @@ class FormAccept(View):
             await interaction.response.defer()
             user=interaction.guild.get_member(self.user_id)
             await user.add_roles(interaction.guild.get_role(config.BASE_ROLE))
+            await interaction.channel.delete()
         else:
             await interaction.response.send_message("Не балуйся, эта кнопка не для тебя", ephemeral=True) 
 
@@ -207,7 +208,7 @@ class Form(Modal):
         
         view=FormAccept(interaction.user.id)
         embed = discord.Embed(
-            title=f"Заявка-{mention}", 
+            title=f"Заявка-{user.name}", 
             description=f"Ник на сервере:**{self.children[0].value}**\nВозраст и часовой пояс:**{self.children[1].value}**\nСостояли в других городах?:**{self.children[2].value}**\nЧем хотели бы заниматься в городе?:**{self.children[3].value}**\nО себе:**{self.children[4].value}**\n", color=0x00ff00)
         await thread.send(embed=embed, view=view)
 
