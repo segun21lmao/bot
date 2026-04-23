@@ -144,7 +144,7 @@ class FormAccept(View):
     async def accept_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.guild_permissions.administrator:
             await interaction.response.defer()
-            user=interaction.guild.get_member(self.user_id)
+            user=await interaction.guild.fetch_member(self.user_id)
             await user.add_roles(interaction.guild.get_role(config.BASE_ROLE))
             await interaction.channel.delete()
         else:
