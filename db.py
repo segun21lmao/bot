@@ -12,7 +12,6 @@ async def init_db():
                 thread_message_id INTEGER UNIQUE,         
                 title TEXT,
                 description TEXT,
-                type TEXT,
                 status TEXT DEFAULT 'active'
             )
         """)
@@ -26,11 +25,11 @@ async def init_db():
         await db.commit()
 
 # --- Функции для работы с задачами ---
-async def create_task(message_id: int, title: str, description: str, type:str) -> int:
+async def create_task(message_id: int, title: str, description: str) -> int:
     async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute(
-            "INSERT INTO tasks (message_id, title, description,type) VALUES (?, ?, ?,?)",
-            (message_id, title, description,type)
+            "INSERT INTO tasks (message_id, title, description) VALUES (?, ?, ?)",
+            (message_id, title, description)
         )
         await db.commit()
         return cursor.lastrowid

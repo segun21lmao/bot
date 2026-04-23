@@ -15,7 +15,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 async def load_cogs():
     await bot.load_extension("cogs.taskmanager")
-
+    await bot.load_extension("cogs.form_manager")
 
 @bot.event
 async def on_ready():
