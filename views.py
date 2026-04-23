@@ -147,14 +147,14 @@ class FormAccept(View):
             user=interaction.guild.get_member(self.user_id)
             await user.add_roles(interaction.guild.get_role(config.BASE_ROLE))
         else:
-            interaction.response.send_message("Не балуйся, эта кнопка не для тебя", ephemeral=True) 
+            await interaction.response.send_message("Не балуйся, эта кнопка не для тебя", ephemeral=True) 
 
     @button(label="Отклонить", style=discord.ButtonStyle.danger,custom_id="decline_form")
     async def decline_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.guild_permissions.administrator:
             await interaction.response.send_message("Извините ваша заявка была отклонена")
         else:
-            interaction.response.send_message("Не балуйся, эта кнопка не для тебя", ephemeral=True)         
+            await interaction.response.send_message("Не балуйся, эта кнопка не для тебя", ephemeral=True)         
         
 
 class Form(Modal):
@@ -199,14 +199,16 @@ class Form(Modal):
     async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.defer()
         channel=interaction.channel
-        thread=await channel.create_thread(name=f"Заявка-{self.children[0].value}",type=discord.ChannelType.private_thread, auto_archive_duration=1440)
+        user = await interaction.guild.fetch_member(interaction.user.id)
+        mention=user.mention
+        thread=await channel.create_thread(name=f"Заявка-{mention}",type=discord.ChannelType.private_thread, auto_archive_duration=1440)
         #thread=await interaction.message.create_thread(name=f"Заявка-{self.children[0].value}", auto_archive_duration=1440)
         await thread.add_user(interaction.user)
-        mention=interaction.user.mention
+        
         view=FormAccept(interaction.user.id)
         embed = discord.Embed(
             title=f"Заявка-{mention}", 
-            description=f"Ник на сервере:{self.children[0].value}\nВозраст и часовой пояс:{self.children[1].value}\nСостояли в других городах?:{self.children[2].value}\nЧем хотели бы заниматься в городе?:{self.children[3].value}\nО себе:{self.children[4].value}\n", color=0x00ff00)
+            description=f"Ник на сервере:**{self.children[0].value}**\nВозраст и часовой пояс:**{self.children[1].value}**\nСостояли в других городах?:**{self.children[2].value}**\nЧем хотели бы заниматься в городе?:**{self.children[3].value}**\nО себе:**{self.children[4].value}**\n", color=0x00ff00)
         await thread.send(embed=embed, view=view)
 
 
