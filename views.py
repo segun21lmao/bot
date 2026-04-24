@@ -145,7 +145,6 @@ class FormAccept(View):
         
         for id in config.ADMIN_ROLE:
             if interaction.guild.get_role(id) in interaction.user.roles:
-                await interaction.response.defer()
                 user=await interaction.guild.fetch_member(self.user_id)
                 await user.add_roles(interaction.guild.get_role(config.BASE_ROLE))
                 await interaction.channel.delete(reason="Заявка принята")
