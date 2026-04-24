@@ -209,10 +209,16 @@ class Form(Modal):
         await thread.send(f"{admin.mention}, {sub_admin.mention}  — новая заявка!")
         await thread.add_user(interaction.user)
         embed_data= {
-            "title": "Заявка-{user.name}",
-            "description": "🪪 Ник на сервере:\n**{self.children[0].value}**\n 👣 Возраст и часовой пояс:\n**{self.children[1].value}**\n  🌆 Состояли в других городах?:\n**{self.children[2].value}**\n ⛏️ Чем хотели бы заниматься в городе?:\n**{self.children[3].value}**\n 👁️ Расскажите о себе:\n",
+            "title": f"Заявка-{user.name}",
+            "description": (
+            f"🪪 Ник на сервере:\n**{self.children[0].value}**\n"
+            f"👣 Возраст и часовой пояс:\n**{self.children[1].value}**\n"
+            f"🌆 Состояли в других городах?:\n**{self.children[2].value}**\n"
+            f"⛏️ Чем хотели бы заниматься в городе?:\n**{self.children[3].value}**\n"
+            f"👁️ Расскажите о себе:\n**{self.children[4].value}**"
+            ),
             "color": 7256354
-            }
+        }
         view=FormAccept(interaction.user.id)
         embed = discord.Embed.from_dict(embed_data)
         await thread.send(embed=embed, view=view)
