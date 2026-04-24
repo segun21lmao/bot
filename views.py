@@ -5,7 +5,7 @@ from discord.ui import View, button
 from db import get_task_by_message, add_member, get_task_members, set_task_thread, remove_member, complete_task, get_message_by_task
 import config 
 from discord.ui import View, button, Modal, TextInput
-
+import asyncio
 
 async def get_mentions(interaction: discord.Interaction, members: list = None):
         mentions = []
@@ -146,7 +146,7 @@ class FormAccept(View):
             await interaction.response.defer()
             user=await interaction.guild.fetch_member(self.user_id)
             await user.add_roles(interaction.guild.get_role(config.BASE_ROLE))
-            await interaction.channel.delete()
+            await interaction.channel.delete(reason="Заявка принята")
         else:
             await interaction.response.send_message("Не балуйся, эта кнопка не для тебя", ephemeral=True) 
 
@@ -154,6 +154,8 @@ class FormAccept(View):
     async def decline_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.guild_permissions.administrator:
             await interaction.response.send_message("Извините ваша заявка была отклонена")
+            await asyncio.sleep(86400)
+            await interaction.channel.delete(reason="Заявка отклонена")
         else:
             await interaction.response.send_message("Не балуйся, эта кнопка не для тебя", ephemeral=True)         
         
@@ -203,15 +205,16 @@ class Form(Modal):
         user = await interaction.guild.fetch_member(interaction.user.id)
         admin=interaction.guild.get_role(config.ADMIN_ROLE)
         thread=await channel.create_thread(name=f"Заявка-{user.name}",type=discord.ChannelType.private_thread, auto_archive_duration=1440)
-        await thread.send(f"{admin.mention} — новая заявка.")
+        await thread.send(f"{admin.mention} — новая заявка!")
         await thread.add_user(interaction.user)
-        
+        embed_data= {
+            "title": "Заявка-{user.name}",
+            "description": "🪪 Ник на сервере:\n**{self.children[0].value}**\n 👣 Возраст и часовой пояс:\n**{self.children[1].value}**\n  🌆 Состояли в других городах?:\n**{self.children[2].value}**\n ⛏️ Чем хотели бы заниматься в городе?:\n**{self.children[3].value}**\n 👁️ Расскажите о себе:\n",
+            "color": 7256354
+            }
         view=FormAccept(interaction.user.id)
-        embed = discord.Embed(
-            title=f"Заявка-{user.name}", 
-            description=f"Ник на сервере:**{self.children[0].value}**\nВозраст и часовой пояс:**{self.children[1].value}**\nСостояли в других городах?:**{self.children[2].value}**\nЧем хотели бы заниматься в городе?:**{self.children[3].value}**\nО себе:**{self.children[4].value}**\n", color=0x00ff00)
+        embed = discord.Embed.from_dict(embed_data)
         await thread.send(embed=embed, view=view)
-
 
 
 

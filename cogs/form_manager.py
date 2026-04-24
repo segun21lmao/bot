@@ -22,9 +22,9 @@ class FormManager(commands.Cog):
         await channel.purge()
         view=FormHolderView()
         embed = discord.Embed(
-            title=f"Набор в город", 
-            description="", color=0x00ff00)
-        msg=await channel.send(view=view,embed=embed)
+            title=f"🐙 **Набор в город**", 
+            description="Понравился город? Подай зявку!", color=0x00ff00)
+        await channel.send(view=view,embed=embed)
         
 
 
