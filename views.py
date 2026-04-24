@@ -204,8 +204,9 @@ class Form(Modal):
         channel=interaction.channel
         user = await interaction.guild.fetch_member(interaction.user.id)
         admin=interaction.guild.get_role(config.ADMIN_ROLE)
+        sub_admin=interaction.guild.get_role(config.SUB_ADMIN_ROLE)
         thread=await channel.create_thread(name=f"Заявка-{user.name}",type=discord.ChannelType.private_thread, auto_archive_duration=1440)
-        await thread.send(f"{admin.mention} — новая заявка!")
+        await thread.send(f"{admin.mention}, {sub_admin.mention}  — новая заявка!")
         await thread.add_user(interaction.user)
         embed_data= {
             "title": "Заявка-{user.name}",
