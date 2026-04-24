@@ -140,28 +140,30 @@ class FormAccept(View):
     def __init__(self, user_id:int):
         super().__init__(timeout=None)
         self.user_id=user_id       
+    async def is_admin(self, interaction: discord.Interaction) -> bool:
+        admin_role_ids = set(config.ADMIN_ROLE)
+        return any(role.id in admin_role_ids for role in interaction.user.roles)    
     @button(label="Принять", style=discord.ButtonStyle.success, custom_id="accept_form")
     async def accept_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if not await self.is_admin(interaction):
+            await interaction.response.send_message("Не балуйся, эта кнопка не для тебя", ephemeral=True)
+            return
         
-        for id in config.ADMIN_ROLE:
-            if interaction.guild.get_role(id) in interaction.user.roles:
-                user=await interaction.guild.fetch_member(self.user_id)
-                await user.add_roles(interaction.guild.get_role(config.BASE_ROLE))
-                await interaction.channel.delete(reason="Заявка принята")
-            else:
-                await interaction.response.send_message("Не балуйся, эта кнопка не для тебя", ephemeral=True) 
+        user=await interaction.guild.fetch_member(self.user_id)
+        await user.add_roles(interaction.guild.get_role(config.BASE_ROLE))
+        await interaction.channel.delete(reason="Заявка принята")  
+        
         
        
 
     @button(label="Отклонить", style=discord.ButtonStyle.danger,custom_id="decline_form")
     async def decline_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        for id in config.ADMIN_ROLE:
-            if interaction.guild.get_role(id) in interaction.user.roles:
-                await interaction.response.send_message("Извините ваша заявка была отклонена")
-                await asyncio.sleep(86400)
-                await interaction.channel.delete(reason="Заявка отклонена")
-            else:
-                await interaction.response.send_message("Не балуйся, эта кнопка не для тебя", ephemeral=True)
+        if not await self.is_admin(interaction):
+            await interaction.response.send_message("Не балуйся, эта кнопка не для тебя", ephemeral=True)
+            return
+        await interaction.response.send_message("Извините ваша заявка была отклонена")
+        await asyncio.sleep(86400)
+        await interaction.channel.delete(reason="Заявка отклонена")
                  
         
 
