@@ -142,22 +142,28 @@ class FormAccept(View):
         self.user_id=user_id       
     @button(label="Принять", style=discord.ButtonStyle.success, custom_id="accept_form")
     async def accept_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.guild_permissions.administrator:
-            await interaction.response.defer()
-            user=await interaction.guild.fetch_member(self.user_id)
-            await user.add_roles(interaction.guild.get_role(config.BASE_ROLE))
-            await interaction.channel.delete(reason="Заявка принята")
-        else:
-            await interaction.response.send_message("Не балуйся, эта кнопка не для тебя", ephemeral=True) 
+        
+        for id in config.ADMIN_ROLE:
+            if interaction.guild.get_role(id) in interaction.user.roles:
+                await interaction.response.defer()
+                user=await interaction.guild.fetch_member(self.user_id)
+                await user.add_roles(interaction.guild.get_role(config.BASE_ROLE))
+                await interaction.channel.delete(reason="Заявка принята")
+            else:
+                await interaction.response.send_message("Не балуйся, эта кнопка не для тебя", ephemeral=True) 
+        
+       
 
     @button(label="Отклонить", style=discord.ButtonStyle.danger,custom_id="decline_form")
     async def decline_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.guild_permissions.administrator:
-            await interaction.response.send_message("Извините ваша заявка была отклонена")
-            await asyncio.sleep(86400)
-            await interaction.channel.delete(reason="Заявка отклонена")
-        else:
-            await interaction.response.send_message("Не балуйся, эта кнопка не для тебя", ephemeral=True)         
+        for id in config.ADMIN_ROLE:
+            if interaction.guild.get_role(id) in interaction.user.roles:
+                await interaction.response.send_message("Извините ваша заявка была отклонена")
+                await asyncio.sleep(86400)
+                await interaction.channel.delete(reason="Заявка отклонена")
+            else:
+                await interaction.response.send_message("Не балуйся, эта кнопка не для тебя", ephemeral=True)
+                 
         
 
 class Form(Modal):
@@ -203,10 +209,10 @@ class Form(Modal):
         await interaction.response.defer()
         channel=interaction.channel
         user = await interaction.guild.fetch_member(interaction.user.id)
-        admin=interaction.guild.get_role(config.ADMIN_ROLE)
-        sub_admin=interaction.guild.get_role(config.SUB_ADMIN_ROLE)
+        admin=[]
+        for id in config.ADMIN_ROLE:
+            admin.append(interaction.guild.get_role(id))
         thread=await channel.create_thread(name=f"Заявка-{user.name}",type=discord.ChannelType.private_thread, auto_archive_duration=1440)
-        await thread.send(f"{admin.mention}, {sub_admin.mention}  — новая заявка!")
         await thread.add_user(interaction.user)
         embed_data= {
             "title": f"Заявка-{user.name}",
@@ -222,6 +228,7 @@ class Form(Modal):
         view=FormAccept(interaction.user.id)
         embed = discord.Embed.from_dict(embed_data)
         await thread.send(embed=embed, view=view)
+        await thread.send(f"{admin[0]}, {admin[1]}  — новая заявка!")
 
 
 
