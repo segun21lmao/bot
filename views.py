@@ -228,8 +228,12 @@ class Form(Modal):
         }
         view=FormAccept(interaction.user.id)
         embed = discord.Embed.from_dict(embed_data)
+        admin_mention=[]
+        for adm in admin:
+            admin_mention.append(adm.mention)
+
         await thread.send(embed=embed, view=view)
-        await thread.send(f"{admin[0].mention}, {admin[1].mention}  — новая заявка!")
+        await thread.send(f"{admin_mention}  — новая заявка!")
 
 
 
