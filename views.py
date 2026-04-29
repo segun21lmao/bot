@@ -166,7 +166,6 @@ class FormAccept(View):
         await interaction.channel.delete(reason="Заявка отклонена")
                  
         
-
 class Form(Modal):
     def __init__(self, channel_id:int):
         super().__init__(title="Заявка")
@@ -232,6 +231,53 @@ class Form(Modal):
         mentions_str = ', '.join(admin_mention)
         await thread.send(embed=embed, view=view)
         await thread.send(f"{mentions_str} — новая заявка!") 
+
+
+class RoleForm(View):
+    def __init__(self):
+        super().__init__(timeout=None)
+    
+
+    @button(label="⛏️", style=discord.ButtonStyle.success, custom_id="res_button")
+    async def res_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        user=interaction.user
+        if "1490339118452834365" not in user.roles:
+            await user.add_roles(interaction.guild.get_role(1490339118452834365))
+            await interaction.response.send_message("Теперь ты ресурсер!", ephemeral=True)
+        else:
+            await user.remove_roles(interaction.guild.get_role(1490339118452834365))
+            await interaction.response.send_message("Ты больше не ресурсер", ephemeral=True)     
+    
+    
+    @button(label="🧱", style=discord.ButtonStyle.success, custom_id="build_button")
+    async def build_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        user=interaction.user
+        if "1490402487490838690" not in user.roles:
+            await user.add_roles(interaction.guild.get_role(1490402487490838690))
+            await interaction.response.send_message("Теперь ты перестройщик!", ephemeral=True)
+        else:
+            await user.remove_roles(interaction.guild.get_role(1490402487490838690))
+            await interaction.response.send_message("Ты больше не перестройщик", ephemeral=True)
+    
+   
+    @button(label="🐽", style=discord.ButtonStyle.success, custom_id="farm_button")
+    async def farm_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        user=interaction.user
+        if "1490403240565539006" not in user.roles:
+            await user.add_roles(interaction.guild.get_role(1490403240565539006))
+            await interaction.response.send_message("Теперь ты редстоунер!", ephemeral=True)
+        else:
+            await user.remove_roles(interaction.guild.get_role(1490403240565539006))
+            await interaction.response.send_message("Ты больше не редстоунер", ephemeral=True)
+
+
+
+
+    
+    
 
 
 
