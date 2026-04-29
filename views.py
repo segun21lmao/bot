@@ -242,7 +242,8 @@ class RoleForm(View):
     async def res_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         user=interaction.user
-        if "1490339118452834365" not in user.roles:
+        role = interaction.guild.get_role(1490339118452834365)
+        if role not in user.roles:
             await user.add_roles(interaction.guild.get_role(1490339118452834365))
             await interaction.followup.send("Теперь ты ресурсер!", ephemeral=True)
         else:
@@ -254,7 +255,8 @@ class RoleForm(View):
     async def build_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         user=interaction.user
-        if "1490402487490838690" not in user.roles:
+        role = interaction.guild.get_role(1490402487490838690)
+        if role not in user.roles:
             await user.add_roles(interaction.guild.get_role(1490402487490838690))
             await interaction.followup.send("Теперь ты перестройщик!", ephemeral=True)
         else:
@@ -266,7 +268,8 @@ class RoleForm(View):
     async def farm_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         user=interaction.user
-        if "1490403240565539006" not in user.roles:
+        role = interaction.guild.get_role(1490403240565539006)
+        if role not in user.roles:
             await user.add_roles(interaction.guild.get_role(1490403240565539006))
             await interaction.followup.send("Теперь ты редстоунер!", ephemeral=True)
         else:
