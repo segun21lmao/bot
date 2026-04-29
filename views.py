@@ -244,10 +244,10 @@ class RoleForm(View):
         user=interaction.user
         if "1490339118452834365" not in user.roles:
             await user.add_roles(interaction.guild.get_role(1490339118452834365))
-            await interaction.response.send_message("Теперь ты ресурсер!", ephemeral=True)
+            await interaction.followup.send("Теперь ты ресурсер!", ephemeral=True)
         else:
             await user.remove_roles(interaction.guild.get_role(1490339118452834365))
-            await interaction.response.send_message("Ты больше не ресурсер", ephemeral=True)     
+            await interaction.followup.send("Ты больше не ресурсер", ephemeral=True)     
     
     
     @button(label="🧱", style=discord.ButtonStyle.success, custom_id="build_button")
@@ -256,10 +256,10 @@ class RoleForm(View):
         user=interaction.user
         if "1490402487490838690" not in user.roles:
             await user.add_roles(interaction.guild.get_role(1490402487490838690))
-            await interaction.response.send_message("Теперь ты перестройщик!", ephemeral=True)
+            await interaction.followup.send("Теперь ты перестройщик!", ephemeral=True)
         else:
             await user.remove_roles(interaction.guild.get_role(1490402487490838690))
-            await interaction.response.send_message("Ты больше не перестройщик", ephemeral=True)
+            await interaction.followup.send("Ты больше не перестройщик", ephemeral=True)
     
    
     @button(label="🐽", style=discord.ButtonStyle.success, custom_id="farm_button")
@@ -268,10 +268,10 @@ class RoleForm(View):
         user=interaction.user
         if "1490403240565539006" not in user.roles:
             await user.add_roles(interaction.guild.get_role(1490403240565539006))
-            await interaction.response.send_message("Теперь ты редстоунер!", ephemeral=True)
+            await interaction.followup.send("Теперь ты редстоунер!", ephemeral=True)
         else:
             await user.remove_roles(interaction.guild.get_role(1490403240565539006))
-            await interaction.response.send_message("Ты больше не редстоунер", ephemeral=True)
+            await interaction.followup.send("Ты больше не редстоунер", ephemeral=True)
 
 
 
