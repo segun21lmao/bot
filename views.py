@@ -106,11 +106,11 @@ class TaskControlView(View):
         role=interaction.guild.get_role(config.RES_ROLE)
         #content = f"{role.mention}\n**Задача:** {task['title']}\n**Описание:** {task['description']}{extra}"
         #await orig_message.edit(content=content)
-        task_embed = discord.Embed(title=f"{role.mention}\n**Задача:** {task['title']}\n", description=f"**Описание:** {task['description']}{extra}", color=0xFF9900)
+        task_embed = discord.Embed(title=f"\n**Задача:** {task['title']}\n", description=f"**Описание:** {task['description']}{extra}", color=0xFF9900)
         if image_str is not None:
             image_url = f"https://minecraft-api.vercel.app/images/items/{image_str}.png"
             task_embed.set_image(url=image_url)
-        await orig_message.edit(embed=task_embed)
+        await orig_message.edit(content=role.mention,embed=task_embed)
         await interaction.followup.send("Вы отказались от задачи.", ephemeral=True)
             
 

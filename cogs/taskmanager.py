@@ -53,15 +53,15 @@ class TaskManager(commands.Cog):
             task_id = await create_task(msg.id, title, description)
             view = AcceptTaskView(task_id, msg.id)
             image_str=get_block_name(title)
-            task_embed = discord.Embed(title=f"{role.mention}\n**Задача:** {title}\n", description=f"**Описание:** {description}\n\n**Принявшие:** пока никто", color=0xFF9900)
+            task_embed = discord.Embed(title=f"\n**Задача:** {title}\n", description=f"**Описание:** {description}\n\n**Принявшие:** пока никто", color=0xFF9900)
             if image_str is not None:
-                image_url = f"https://minecraft-api.vercel.app/images/items/{image_str}.png"
+                image_url = f"https://craft-api.vercel.app/images/items/{image_str}.png"
                 task_embed.set_image(url=image_url)
             else:
                 await interaction.followup.send("Блок не найден,создаю задачу без картинки.", ephemeral=True)
 
                 
-            await msg.edit(embed=task_embed, view=view)
+            await msg.edit(content=role.mention,embed=task_embed, view=view)
             self.bot.add_view(view, message_id=msg.id)
             if count > 1:
                 await asyncio.sleep(0.5)  # небольшая задержка между задачами
