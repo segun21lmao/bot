@@ -2,7 +2,7 @@ import discord
 from db import get_task_by_message, add_member, get_task_members, set_task_thread, remove_member, complete_task, get_message_by_task, set_thread_message 
 import config 
 from discord.ui import View, button, Modal, TextInput
-from utils import get_block_name, get_item_image_url,get_item_image_url_async
+from utils import get_block_name, get_item_image_url_async
 import asyncio
 
 async def get_mentions(interaction: discord.Interaction, members: list = None):

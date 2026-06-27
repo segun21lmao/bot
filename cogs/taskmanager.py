@@ -4,7 +4,7 @@ from discord import app_commands
 from db import create_task, get_task_by_message, get_task_members, add_member, remove_member, complete_task, set_task_thread
 from views import AcceptTaskView, TaskControlView
 import asyncio
-from utils import get_block_name, get_item_image_url,get_item_image_url_async
+from utils import get_block_name,get_item_image_url_async
 import config 
 
 class TaskManager(commands.Cog):
