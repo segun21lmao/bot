@@ -36,10 +36,39 @@ async def create_task(message_id: int, title: str, description: str) -> int:
 
 async def get_task_by_message(message_id: int):
     async with aiosqlite.connect(DB_PATH) as db:
-        async with db.execute("SELECT id, thread_id, title, description, status, type FROM tasks WHERE message_id = ?", (message_id,)) as cursor:
+        # Убрали type, которого нет в таблице
+        async with db.execute(
+            "SELECT id, thread_id, title, description, status, thread_message_id FROM tasks WHERE message_id = ?",
+            (message_id,)
+        ) as cursor:
             row = await cursor.fetchone()
             if row:
-                return {"id": row[0], "thread_id": row[1], "title": row[2], "description": row[3], "status": row[4], "type":row[5]}
+                return {
+                    "id": row[0],
+                    "thread_id": row[1],
+                    "title": row[2],
+                    "description": row[3],
+                    "status": row[4],
+                    "thread_message_id": row[5]
+                }
+    return None
+
+async def get_task_by_id(task_id: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute(
+            "SELECT message_id, thread_id, title, description, status, thread_message_id FROM tasks WHERE id = ?",
+            (task_id,)
+        ) as cursor:
+            row = await cursor.fetchone()
+            if row:
+                return {
+                    "message_id": row[0],
+                    "thread_id": row[1],
+                    "title": row[2],
+                    "description": row[3],
+                    "status": row[4],
+                    "thread_message_id": row[5]
+                }
     return None
 
 async def get_message_by_task(task_id: int):
@@ -47,6 +76,22 @@ async def get_message_by_task(task_id: int):
         async with db.execute("SELECT message_id FROM tasks WHERE id = ?", (task_id,)) as cursor:
             row = await cursor.fetchone()
             return row[0] if row else None
+
+async def get_thread_message_id(task_id: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("SELECT thread_message_id FROM tasks WHERE id = ?", (task_id,)) as cursor:
+            row = await cursor.fetchone()
+            return row[0] if row else None
+
+async def set_task_thread(task_id: int, thread_id: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("UPDATE tasks SET thread_id = ? WHERE id = ?", (thread_id, task_id))
+        await db.commit()
+
+async def set_thread_message(task_id: int, thread_message_id: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("UPDATE tasks SET thread_message_id = ? WHERE id = ?", (thread_message_id, task_id))
+        await db.commit()
 
 async def get_task_members(task_id: int):
     async with aiosqlite.connect(DB_PATH) as db:
@@ -67,9 +112,4 @@ async def remove_member(task_id: int, user_id: int):
 async def complete_task(task_id: int):
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("UPDATE tasks SET status = 'completed' WHERE id = ?", (task_id,))
-        await db.commit()
-
-async def set_task_thread(task_id: int, thread_id: int):
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("UPDATE tasks SET thread_id = ? WHERE id = ?", (thread_id, task_id))
         await db.commit()

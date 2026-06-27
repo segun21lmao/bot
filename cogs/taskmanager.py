@@ -4,11 +4,13 @@ from discord import app_commands
 from db import create_task, get_task_by_message, get_task_members, add_member, remove_member, complete_task, set_task_thread
 from views import AcceptTaskView,TaskControlView
 import asyncio
+from utils import get_block_name
 import config 
 
 class TaskManager(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+
         
         
 
@@ -35,7 +37,8 @@ class TaskManager(commands.Cog):
                     self.bot.add_view(view1, message_id=tmsg_id)
 
 
-    
+
+
     @app_commands.command(name="add_task", description="Добавить новую задачу")
     async def add_task(self, interaction: discord.Interaction, title: str, description: str,  count: int = 1):
         channel = interaction.channel  # объект канала
@@ -49,8 +52,16 @@ class TaskManager(commands.Cog):
             role=interaction.guild.get_role(config.RES_ROLE)
             task_id = await create_task(msg.id, title, description)
             view = AcceptTaskView(task_id, msg.id)
-            content = f"{role.mention}\n**Задача:** {title}\n**Описание:** {description}\n\n**Принявшие:** пока никто"
-            await msg.edit(content=content, view=view)
+            image_str=get_block_name(title)
+            task_embed = discord.Embed(title=f"{role.mention}\n**Задача:** {title}\n", description=f"**Описание:** {description}\n\n**Принявшие:** пока никто", color=0xFF9900)
+            if image_str is not None:
+                image_url = f"https://minecraft-api.vercel.app/images/items/{image_str}.png"
+                task_embed.set_image(url=image_url)
+            else:
+                await interaction.followup.send("Блок не найден,создаю задачу без картинки.", ephemeral=True)
+
+                
+            await msg.edit(embed=task_embed, view=view)
             self.bot.add_view(view, message_id=msg.id)
             if count > 1:
                 await asyncio.sleep(0.5)  # небольшая задержка между задачами

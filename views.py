@@ -2,9 +2,10 @@ import discord
 from db import get_task_by_message, add_member, get_task_members, set_task_thread
 import discord
 from discord.ui import View, button
-from db import get_task_by_message, add_member, get_task_members, set_task_thread, remove_member, complete_task, get_message_by_task
+from db import get_task_by_message, add_member, get_task_members, set_task_thread, remove_member, complete_task, get_message_by_task, set_thread_message 
 import config 
 from discord.ui import View, button, Modal, TextInput
+from utils import get_block_name
 import asyncio
 
 async def get_mentions(interaction: discord.Interaction, members: list = None):
@@ -25,20 +26,24 @@ class AcceptTaskView(View):
         super().__init__(timeout=None)
         self.task_id = task_id
         self.message_id = message_id
-    
+
     
 
     async def update_original_message(self, interaction: discord.Interaction):
         members = await get_task_members(self.task_id)
         task = await get_task_by_message(self.message_id)
-    
+        image_str=get_block_name(task['title'])
         mentions = await get_mentions(interaction, members)
         extra = ""
         if mentions:
             extra = "\n\n**Принявшие:** " + ", ".join(mentions)
-        content = f"**Задача:** {task['title']}\n**Описание:** {task['description']}{extra}" # поменять на эмбед сообщение
         
-        await interaction.message.edit(content=content)
+        #content = f"**Задача:** {task['title']}\n**Описание:** {task['description']}{extra}" # поменять на эмбед сообщение
+        task_embed = discord.Embed(title=f"**Задача:** {task['title']}\n", description=f"**Описание:** {task['description']}{extra}", color=0xFF9900)
+        if image_str is not None:
+            image_url = f"https://minecraft-api.vercel.app/images/items/{image_str}.png"
+            task_embed.set_image(url=image_url)
+        await interaction.message.edit(embed=task_embed)
     
 
     @button(label="Принять", style=discord.ButtonStyle.primary, custom_id="accept_task")
@@ -67,7 +72,9 @@ class AcceptTaskView(View):
             await set_task_thread(self.task_id, thread.id)
             embed = discord.Embed(title=task["title"], description=task["description"], color=0x00ff00)
             view = TaskControlView(self.task_id, thread.id)
-            await thread.send(embed=embed, view=view)
+            msg = await thread.send(embed=embed, view=view)          # ← сохраняем сообщение
+            await set_thread_message(self.task_id, msg.id)           # ← сохраняем ID в БД
+            interaction.client.add_view(view, message_id=msg.id)     # ← регистрируем для персистентности
             
         else:
             thread = interaction.guild.get_thread(task["thread_id"])
@@ -92,13 +99,18 @@ class TaskControlView(View):
         await remove_member(self.task_id, interaction.user.id)   
         await thread.remove_user(interaction.user)
         members = await get_task_members(self.task_id)
-        task = await get_task_by_message(orig_message_id)
+        task = get_task_by_message(orig_message_id)
         mentions = await get_mentions(interaction, members)
+        image_str=await get_block_name(task['title'])
         extra = "\n\n**Принявшие:** " + ", ".join(mentions) if mentions else ""
         role=interaction.guild.get_role(config.RES_ROLE)
-        content = f"{role.mention}\n**Задача:** {task['title']}\n**Описание:** {task['description']}{extra}"
-        await orig_message.edit(content=content)
-    
+        #content = f"{role.mention}\n**Задача:** {task['title']}\n**Описание:** {task['description']}{extra}"
+        #await orig_message.edit(content=content)
+        task_embed = discord.Embed(title=f"{role.mention}\n**Задача:** {task['title']}\n", description=f"**Описание:** {task['description']}{extra}", color=0xFF9900)
+        if image_str is not None:
+            image_url = f"https://minecraft-api.vercel.app/images/items/{image_str}.png"
+            task_embed.set_image(url=image_url)
+        await orig_message.edit(embed=task_embed)
         await interaction.followup.send("Вы отказались от задачи.", ephemeral=True)
             
 
@@ -119,10 +131,11 @@ class TaskControlView(View):
         extra = ""
         if mentions:
             extra = "\n\n**Выполнили:** " + ", ".join(mentions)
-        content = f"**Задача:** {task['title']}\n**Описание:** {task['description']}{extra}"
-    
+
+        task_embed = discord.Embed(title=f"**Задача:** {task['title']}\n", description=f"**Описание:** {task['description']}{extra}", color=0x00ff00)
+
         
-        await orig_message.edit(content=content,view=None)
+        await orig_message.edit(embed=task_embed,view=None)
         if thread:
             await interaction.message.edit(content="задача выполнена!",view=None)
             await thread.edit(locked=True, archived=True)
