@@ -2,7 +2,7 @@ import discord
 from db import get_task_by_message, add_member, get_task_members, set_task_thread, remove_member, complete_task, get_message_by_task, set_thread_message 
 import config 
 from discord.ui import View, button, Modal, TextInput
-from utils import get_block_name, get_item_image_url
+from utils import get_block_name, get_item_image_url,get_item_image_url_async
 import asyncio
 
 async def get_mentions(interaction: discord.Interaction, members: list = None):
@@ -27,7 +27,7 @@ class AcceptTaskView(View):
         members = await get_task_members(self.task_id)
         task = await get_task_by_message(self.message_id)
         image_str = get_block_name(task['title'])
-        image_url = get_item_image_url(image_str)
+        image_url = await get_item_image_url_async(image_str)
         mentions = await get_mentions(interaction, members)
         extra = ""
         if mentions:
@@ -82,7 +82,7 @@ class TaskControlView(View):
         task = await get_task_by_message(orig_message_id)  # добавлен await
         mentions = await get_mentions(interaction, members)
         image_str = get_block_name(task['title'])
-        image_url = get_item_image_url(image_str)
+        image_url = await get_item_image_url_async(image_str)
         extra = "\n\n**Принявшие:** " + ", ".join(mentions) if mentions else ""
         role = interaction.guild.get_role(config.RES_ROLE)
         task_embed = discord.Embed(
@@ -111,7 +111,7 @@ class TaskControlView(View):
             extra = "\n\n**Выполнили:** " + ", ".join(mentions)
         # Добавим картинку и в выполненную задачу (опционально)
         image_str = get_block_name(task['title'])
-        image_url = get_item_image_url(image_str)
+        image_url = await get_item_image_url_async(image_str)
         task_embed = discord.Embed(
             title=f"**Задача:** {task['title']}\n",
             description=f"**Описание:** {task['description']}{extra}",
