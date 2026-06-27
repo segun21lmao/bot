@@ -58,6 +58,7 @@ class TaskManager(commands.Cog):
             self.bot.add_view(view, message_id=msg.id)
             if count > 1:
                 await asyncio.sleep(0.5)
+        await interaction.followup.send(f"✅ {count} задача(и) создана(ы)!", ephemeral=True)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(TaskManager(bot))

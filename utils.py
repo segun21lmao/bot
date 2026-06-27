@@ -2,10 +2,17 @@ import json
 import time
 from pathlib import Path
 import aiohttp
-import asyncio
+from bs4 import BeautifulSoup
 
 _BLOCK_MAP = None
 _IMAGE_CACHE = {}
+
+# Суффиксы цветных блоков (после цвета идёт именно этот суффикс)
+COLORED_SUFFIXES = [
+    "_wool", "_stained_glass", "_carpet", "_concrete", "_concrete_powder",
+    "_glazed_terracotta", "_terracotta", "_banner", "_bed", "_candle",
+    "_shulker_box", "_dye"
+]
 
 def _load_block_map():
     global _BLOCK_MAP
@@ -29,71 +36,75 @@ def get_block_name(title: str) -> str:
         return block_map[title_lower]
     return "chest"
 
-async def get_item_image_url_async(item_name: str) -> str:
-    print(f"[DEBUG] Запрос для {item_name}")
-    """
-    Получает URL объёмного рендера блока.
-    1) Пытается взять thumbnail через API вики.
-    2) Если нет – ищет изображения на странице и берёт первое подходящее.
-    3) Если и это не удалось – возвращает плоскую иконку с CDN.
-    """
-    if item_name in _IMAGE_CACHE:
-        return _IMAGE_CACHE[item_name]
+def _is_colored_block(eng_name: str) -> bool:
+    for suffix in COLORED_SUFFIXES:
+        if eng_name.endswith(suffix):
+            return True
+    return False
 
-    wiki_title = item_name.replace('_', ' ').title()
-    thumb_url = None
+def _generate_colored_url(eng_name: str) -> str:
+    for suffix in COLORED_SUFFIXES:
+        if eng_name.endswith(suffix):
+            base = eng_name[:-len(suffix)]
+            color_part = base.replace('_', ' ').title().replace(' ', '_')
+            type_part = suffix[1:].replace('_', ' ').title().replace(' ', '_')
+            return f"https://minecraft.wiki/images/{color_part}_{type_part}_JE3_BE3.png"
+    return None
 
-    async with aiohttp.ClientSession() as session:
-        # Шаг 1: запрос thumbnail
-        params = {
-            "action": "query",
-            "titles": wiki_title,
-            "prop": "pageimages",
-            "format": "json",
-            "pithumbsize": 300,
-        }
-        try:
-            async with session.get("https://minecraft.wiki/api.php", params=params) as resp:
-                data = await resp.json()
-                pages = data.get("query", {}).get("pages", {})
-                for page_id, page_info in pages.items():
-                    if "thumbnail" in page_info:
-                        thumb_url = page_info["thumbnail"]["source"]
-                        break
-        except Exception as e:
-            print(f"[API thumbnail error] {e}")
+async def get_item_image_url_async(block_name: str) -> str:
+    if block_name in _IMAGE_CACHE:
+        return _IMAGE_CACHE[block_name]
 
-        # Шаг 2: если thumbnail не найден – пытаемся взять изображение из списка images
-        if not thumb_url:
+    image_url = None
+
+    # 1. Если цветной блок – генерируем URL
+    if _is_colored_block(block_name):
+        image_url = _generate_colored_url(block_name)
+        # Проверяем существование файла (HEAD-запрос)
+        if image_url:
+            async with aiohttp.ClientSession() as session:
+                try:
+                    async with session.head(image_url, timeout=5) as resp:
+                        if resp.status != 200:
+                            # Пробуем JE4_BE4
+                            alt_url = image_url.replace("JE3_BE3", "JE4_BE4")
+                            async with session.head(alt_url, timeout=5) as resp2:
+                                if resp2.status == 200:
+                                    image_url = alt_url
+                                else:
+                                    # Пробуем без суффикса
+                                    alt_url2 = image_url.replace("_JE3_BE3", "")
+                                    async with session.head(alt_url2, timeout=5) as resp3:
+                                        if resp3.status == 200:
+                                            image_url = alt_url2
+                except Exception as e:
+                    print(f"[HEAD error] {e}")
+
+    # 2. Если не цветной или не удалось получить – парсим страницу
+    if not image_url:
+        page_title = block_name.replace('_', ' ').title().replace(' ', '_')
+        wiki_url = f"https://minecraft.wiki/{page_title}"
+        async with aiohttp.ClientSession() as session:
             try:
-                params = {
-                    "action": "query",
-                    "titles": wiki_title,
-                    "prop": "images",
-                    "format": "json",
-                }
-                async with session.get("https://minecraft.wiki/api.php", params=params) as resp:
-                    data = await resp.json()
-                    pages = data.get("query", {}).get("pages", {})
-                    for page_id, page_info in pages.items():
-                        images = page_info.get("images", [])
-                        # Выбираем первое изображение в формате PNG (или JPG)
-                        for img in images:
-                            title = img.get("title", "")
-                            if title.startswith("File:") and (".png" in title or ".jpg" in title or ".jpeg" in title):
-                                filename = title.replace("File:", "").replace(" ", "_")
-                                thumb_url = f"https://minecraft.wiki/images/{filename}"
-                                break
-                        if thumb_url:
-                            break
+                async with session.get(wiki_url, timeout=10) as resp:
+                    if resp.status == 200:
+                        html = await resp.text()
+                        soup = BeautifulSoup(html, 'html.parser')
+                        meta = soup.find('meta', property='og:image')
+                        if meta and meta.get('content'):
+                            image_url = meta['content']
             except Exception as e:
-                print(f"[API images error] {e}")
+                print(f"[Parse error] {e}")
 
-        # Шаг 3: если всё равно нет – fallback на старый CDN
-        if not thumb_url:
-            thumb_url = f"https://cdn.jsdelivr.net/npm/minecraft-assets@latest/assets/minecraft/textures/block/{item_name}.png?t={int(time.time())}"
+    # 3. Fallback – плоская иконка
+    if not image_url:
+        image_url = f"https://cdn.jsdelivr.net/npm/minecraft-assets@latest/assets/minecraft/textures/block/{block_name}.png"
 
-        _IMAGE_CACHE[item_name] = thumb_url
-        print(f"[DEBUG] Результат: {thumb_url}")
-        return thumb_url
-    
+    # Добавляем параметр для сброса кеша
+    if '?' in image_url:
+        image_url += f"&t={int(time.time()*1000)}"
+    else:
+        image_url += f"?t={int(time.time()*1000)}"
+
+    _IMAGE_CACHE[block_name] = image_url
+    return image_url

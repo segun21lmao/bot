@@ -1,4 +1,4 @@
 discord.py
-discord.py aiohttp minecraft-data
+beautifulsoup4
 aiosqlite
 python-dotenv
