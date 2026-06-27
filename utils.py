@@ -30,6 +30,7 @@ def get_block_name(title: str) -> str:
     return "chest"
 
 async def get_item_image_url_async(item_name: str) -> str:
+    print(f"[DEBUG] Запрос для {item_name}")
     """
     Получает URL объёмного рендера блока.
     1) Пытается взять thumbnail через API вики.
@@ -93,4 +94,6 @@ async def get_item_image_url_async(item_name: str) -> str:
             thumb_url = f"https://cdn.jsdelivr.net/npm/minecraft-assets@latest/assets/minecraft/textures/block/{item_name}.png?t={int(time.time())}"
 
         _IMAGE_CACHE[item_name] = thumb_url
+        print(f"[DEBUG] Результат: {thumb_url}")
         return thumb_url
+    
