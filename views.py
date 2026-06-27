@@ -41,7 +41,7 @@ class AcceptTaskView(View):
         #content = f"**Задача:** {task['title']}\n**Описание:** {task['description']}{extra}" # поменять на эмбед сообщение
         task_embed = discord.Embed(title=f"**Задача:** {task['title']}\n", description=f"**Описание:** {task['description']}{extra}", color=0xFF9900)
         if image_str is not None:
-            image_url = f"https://minecraft-api.vercel.app/images/items/{image_str}.png"
+            image_url = f"https://cdn.jsdelivr.net/npm/minecraft-assets@1.20.4/assets/minecraft/textures/block/{image_str}.png"
             task_embed.set_image(url=image_url)
         await interaction.message.edit(embed=task_embed)
     
@@ -108,7 +108,7 @@ class TaskControlView(View):
         #await orig_message.edit(content=content)
         task_embed = discord.Embed(title=f"\n**Задача:** {task['title']}\n", description=f"**Описание:** {task['description']}{extra}", color=0xFF9900)
         if image_str is not None:
-            image_url = f"https://minecraft-api.vercel.app/images/items/{image_str}.png"
+            image_url = f"https://cdn.jsdelivr.net/npm/minecraft-assets@1.20.4/assets/minecraft/textures/block/{image_str}.png"
             task_embed.set_image(url=image_url)
         await orig_message.edit(content=role.mention,embed=task_embed)
         await interaction.followup.send("Вы отказались от задачи.", ephemeral=True)
@@ -124,7 +124,9 @@ class TaskControlView(View):
         thread = interaction.guild.get_thread(self.thread_id)
         members = await get_task_members(self.task_id)
         await complete_task(self.task_id)
-        
+        if thread is None:
+            await interaction.response.send_message("❌ Ветка не найдена.", ephemeral=True)
+            return
         orig_message=await thread.parent.fetch_message(await get_message_by_task(self.task_id))
         mentions = await get_mentions(interaction, members)
         task = await get_task_by_message(await get_message_by_task(self.task_id))
