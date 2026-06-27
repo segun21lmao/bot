@@ -6,6 +6,8 @@ from views import AcceptTaskView,TaskControlView
 import asyncio
 from utils import get_block_name
 import config 
+import aiohttp
+from utils import get_block_name, fetch_image
 
 class TaskManager(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -54,11 +56,14 @@ class TaskManager(commands.Cog):
             view = AcceptTaskView(task_id, msg.id)
             image_str=get_block_name(title)
             task_embed = discord.Embed(title=f"\n**Задача:** {title}\n", description=f"**Описание:** {description}\n\n**Принявшие:** пока никто", color=0xFF9900)
-            if image_str is not None:
-                image_url = f"https://craft-api.vercel.app/images/items/{image_str}.png"
-                task_embed.set_image(url=image_url)
-            else:
-                await interaction.followup.send("Блок не найден,создаю задачу без картинки.", ephemeral=True)
+            async with aiohttp.ClientSession() as session:
+                image_data = await fetch_image(session, title)
+                if image_data:
+                    file = discord.File(image_data, filename=f"{image_str}.png")
+                    await msg.edit(content=role.mention, embed=task_embed, view=view, file=file)
+                else:
+                # Если картинка не скачалась, создаём эмбед без неё (но такого почти не бывает)
+                    await msg.edit(content=role.mention, embed=task_embed, view=view)
 
                 
             await msg.edit(content=role.mention,embed=task_embed, view=view)
