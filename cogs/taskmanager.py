@@ -4,7 +4,7 @@ from discord import app_commands
 from db import create_task, get_task_by_message, get_task_members, add_member, remove_member, complete_task, set_task_thread
 from views import AcceptTaskView, TaskControlView
 import asyncio
-from utils import get_block_name,get_item_image_url_async
+from utils import get_block_name
 import config 
 
 class TaskManager(commands.Cog):
@@ -44,8 +44,8 @@ class TaskManager(commands.Cog):
             task_id = await create_task(msg.id, title, description)
             view = AcceptTaskView(task_id, msg.id)
 
-            image_str = get_block_name(title)
-            image_url = await get_item_image_url_async(image_str)
+            image_url = get_block_name(title)
+            
 
             task_embed = discord.Embed(
                 title=f"\n**Задача:** {title}\n",
